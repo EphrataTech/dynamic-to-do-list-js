@@ -3,13 +3,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const taskInput = document.getElementById('task-input');
     const taskList = document.getElementById('task-list');
 
-    function addTask() {
-        const taskText = taskInput.value.trim();
-        if (!taskText ) {
+    // Load tasks from Local Storage and render them
+    function loadTasks() {
+        const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+        storedTasks.forEach(taskText => addTask(taskText, false));
+    }
+
+    // Add a task to the DOM and optionally save to Local Storage
+    function addTask(taskText, save = true) {
+        if (!taskText) {
             alert('PLEASE ENTER A TASK');
             return;
         }
-         const listItem = document.createElement('li');
+        const listItem = document.createElement('li');
         listItem.textContent = taskText;
 
         const removeButton = document.createElement('button');
@@ -17,29 +23,32 @@ document.addEventListener('DOMContentLoaded', () => {
         removeButton.classList.add('remove-btn');
         removeButton.onclick = () => {
             taskList.removeChild(listItem);
+            // Remove from Local Storage
+            const updatedTasks = Array.from(taskList.children).map(li => li.firstChild.textContent);
+            localStorage.setItem('tasks', JSON.stringify(updatedTasks));
         };
 
         listItem.appendChild(removeButton);
         taskList.appendChild(listItem);
-        taskInput.value = '';
 
+        if (save) {
+            const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            storedTasks.push(taskText);
+            localStorage.setItem('tasks', JSON.stringify(storedTasks));
+        }
     }
 
-    addButton.addEventListener('click', addTask);
+    addButton.addEventListener('click', () => {
+        addTask(taskInput.value.trim(), true);
+        taskInput.value = '';
+    });
+
     taskInput.addEventListener('keypress', function(event) {
         if (event.key === 'Enter') {
-            addTask();
+            addTask(taskInput.value.trim(), true);
+            taskInput.value = '';
         }
     });
 
-    document.addEventListener('click', addTask);
-
-
-        
-    
-
-
-    
-
+    loadTasks();
 });
-
